@@ -7,6 +7,10 @@ function renderCartContents() {
   const totalPrice = getTotalCart(cartItems);
   const htmlTotal = document.querySelector('.cart-total');
   htmlTotal.innerHTML = `Total: $${totalPrice}`;
+
+  document.querySelectorAll('.cart-remove').forEach(button => {
+    button.addEventListener('click', () => removeItem(button.dataset.id));
+  });
 }
 
 function cartItemTemplate(item) {
@@ -23,6 +27,8 @@ function cartItemTemplate(item) {
   <p class="cart-card__color">${item.Colors[0].ColorName}</p>
   <p class="cart-card__quantity">qty: 1</p>
   <p class="cart-card__price">$${item.FinalPrice}</p>
+  <span class="cart-remove" id="removeItem" data-id=${item.Id}>X</span>
+
 </li>`;
 
   return newItem;
@@ -35,5 +41,16 @@ function getTotalCart(itens) {
     });
     return total;
 } 
+
+function removeItem(id) {
+  let items = getLocalStorage("so-cart") || [];
+  const index = items.findIndex(item => item.Id === id);
+  
+  if (index !== -1) {
+    items.splice(index, 1);
+    localStorage.setItem("so-cart", JSON.stringify(items));
+    renderCartContents();
+  }
+}
 
 renderCartContents();
