@@ -4,7 +4,7 @@ function cartItemTemplate(item) {
   const newItem = `<li class="cart-card divider">
   <a href="#" class="cart-card__image">
     <img
-      src="${item.Image}"
+      src="${item.Images.PrimarySmall}"
       alt="${item.Name}"
     />
   </a>
@@ -14,47 +14,30 @@ function cartItemTemplate(item) {
   <p class="cart-card__color">${item.Colors[0].ColorName}</p>
   <p class="cart-card__quantity">qty: 1</p>
   <p class="cart-card__price">$${item.FinalPrice}</p>
-  <span class="cart-remove" id="removeItem" data-id=${item.Id}>X</span>
 </li>`;
 
   return newItem;
 }
 
 export default class ShoppingCart {
-    constructor(key, parentSelector) {
-      this.key = key;
-      this.parentSelector = parentSelector;
-    }
-  
-    renderCartContents() {
-      const cartItems = getLocalStorage("so-cart");
-      const htmlItems = cartItems.map((item) => cartItemTemplate(item));
-      document.querySelector(".product-list").innerHTML = htmlItems.join("");
-      const totalPrice = getTotalCart(cartItems);
-      const htmlTotal = document.querySelector('.cart-total');
-      htmlTotal.innerHTML = `Total: $${totalPrice}`;
-    
-      document.querySelectorAll('.cart-remove').forEach(button => {
-        button.addEventListener('click', () => this.removeItem(button.dataset.id));
-      });
-    }
-  
-    removeItem(id) {
-      let items = getLocalStorage("so-cart") || [];
-      const index = items.findIndex(item => item.Id === id);
-  
-      if (index !== -1) {
-        items.splice(index, 1);
-        localStorage.setItem("so-cart", JSON.stringify(items));
-        this.renderCartContents();
-      }
-    }
+  constructor(key, parentSelector) {
+    this.key = key;
+    this.parentSelector = parentSelector;
+    this.total = 0;
   }
-   
-  function getTotalCart(itens) {
-    let total = 0;
-    itens.forEach(item => {
-      total += item.FinalPrice;
-    });
-    return total;
+  async init() {
+    const list = getLocalStorage(this.key);
+    this.calculateListTotal(list);
+    this.renderCartContents(list);
   }
+  calculateListTotal(list) {
+    const amounts = list.map((item) => item.FinalPrice);
+    this.total = amounts.reduce((sum, item) => sum + item);
+  }
+  renderCartContents() {
+    const cartItems = getLocalStorage(this.key);
+    const htmlItems = cartItems.map((item) => cartItemTemplate(item));
+    document.querySelector(this.parentSelector).innerHTML = htmlItems.join("");
+    document.querySelector(".list-total").innerText += ` $${this.total}`;
+  }
+}
